@@ -5,7 +5,15 @@ const mongoose = require("mongoose");
 const Laptop = require('./models/laptop'); 
 
 
-mongoose.connect("mongodb://localhost/shelf_laptops");
+mongoose.connect("mongodb://localhost/shelf_laptops", {useNewUrlParser: true})
+.then(() => {
+    console.log('Connected to Mongo Database succesfully')
+})
+.catch(() => {
+    console.log("FAILED TO CONNECT!!");
+});
+
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use((req, res, next) => {
@@ -46,7 +54,9 @@ app.post("/api/laptops", (req, res, next) => {
         image: req.body.image
     });
 
+
     console.log(laptop);
+    laptop.save();
     res.status(201).json({
         message: "Laptop added succesfully"
     });
