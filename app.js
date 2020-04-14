@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const cors = require('cors')
 const Laptop = require('./models/laptop'); 
 
 
@@ -12,7 +13,7 @@ mongoose.connect("mongodb://localhost/shelf_laptops", {useNewUrlParser: true})
 .catch(() => {
     console.log("FAILED TO CONNECT!!");
 });
-
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -22,6 +23,8 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     next();
 });
+
+
 
 app.get("/", function(req, res) {
     res.send("working");
@@ -40,6 +43,13 @@ app.get("/api/laptops", (req,res, next) => {
     })
 });
 
+app.get("/api/laptops/:id", (req, res, next) => {
+    console.log(req.params.id);
+    res.status(200).json({
+        message: 'laptop gottetd'
+    });
+})
+
 app.post("/api/laptops", (req, res, next) => {
     const laptop = new Laptop({
         brand: req.body.brand,
@@ -54,13 +64,21 @@ app.post("/api/laptops", (req, res, next) => {
         image: req.body.image
     });
 
-
     console.log(laptop);
     laptop.save();
     res.status(201).json({
         message: "Laptop added succesfully"
     });
 });
+
+app.delete("/api/laptops/:id", (req, res, next) => {
+    Laptop.deleteOne({_id: req.params.id}).then(result => {
+        console.log(result);
+    })
+    res.status(200).json({
+        message: 'laptop deleted'
+    });
+})
 
 const port = 3000;
 app.listen(port, () => console.log(`Shelp laptops listening at port ${port}`));
