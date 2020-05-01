@@ -4,6 +4,26 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cors = require('cors')
 const Laptop = require('./models/laptop'); 
+const multer = require('multer');
+
+const MIME_TYPE_MAP = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/jpg': 'jpg'
+};
+
+const storage = multer.diskStorage({
+   destination: (req, file, callBack) => {
+       const isValid = MIME_TYPE_MAP[file.mimetype];
+       let error = new Error("Invalid mime type");
+       callBack(null, "images")
+   },
+   filename: (req, file, callBack) => {
+       const name = file.originalname.toLowerCase().split(' ').join('-');
+       const ext = MIME_TYPE_MAP[file.mimetype];
+       callBack(null, name + '-' + Date.now() + '.' + ext);
+   } 
+});
 
 
 mongoose.connect("mongodb://localhost/shelf_laptops", {useNewUrlParser: true})
@@ -50,7 +70,7 @@ app.get("/api/laptops/:id", (req, res, next) => {
     });
 })
 
-app.post("/api/laptops", (req, res, next) => {
+app.post("/api/laptops",multer(storage).single("image"), (req, res, next) => {
     const laptop = new Laptop({
         brand: req.body.brand,
         model:req.body.model,
